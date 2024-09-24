@@ -2,6 +2,7 @@ import pandas as pd
 import csv
 from datetime import datetime
 from data_entry import get_amount, get_category, get_date, get_description
+import matplotlib.pyplot as plt
 
 class CSV:
     CSV_FILE = 'finance_data.csv'
@@ -86,8 +87,19 @@ def add():
 def plot_transactions(df):
     df.set_index("date", inplace=True)
 
-    income_df = df[df["category"] == "Income"].resample("D")
+    income_df = df[df["category"] == "Income"].resample("D").sum().reindex(df.index, fill_value=0)
 
+    expense_df = df[df["category"] == "Expense"].resample("D").sum().reindex(df.index, fill_value=0)
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(income_df.index, income_df["amount"], label="Income", color="green")
+    plt.plot(expense_df.index, expense_df["amount"], label="Expense", color="red")
+    plt.xlabel("Date")
+    plt.ylabel("Amount")
+    plt.title("Income and Expense Over Time")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
 
 def main():
@@ -102,7 +114,9 @@ def main():
         elif choice == "2":
             start_date = get_date("Enter start date (DD-MM-YYYY): ")
             end_date = get_date("Enter end date (DD-MM-YYYY): ")
-            df = CSV.get_transactions(start_date, end_date) 
+            df = CSV.get_transactions(start_date, end_date)
+            if input("Do you want to see a plot? (y/n): ").lower() == "y":
+                plot_transactions(df)
         elif choice == "3":
             print("Goodbye!")
             break
